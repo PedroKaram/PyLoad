@@ -5,7 +5,11 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 import customtkinter as ctk
+from PIL import Image, ImageTk
+import urllib.parse
+import io
 from Services.app_services import *
+import sqlite3
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
@@ -14,6 +18,9 @@ threads = Threads()
 
 services = Services()
 
+conn = sqlite3.connect(os.path.realpath('../env/db/info.db'))
+cursor = conn.cursor()
+
 class MyTabView(ctk.CTkTabview):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -21,6 +28,7 @@ class MyTabView(ctk.CTkTabview):
         UIFont = ctk.CTkFont(family="Segoe UI", weight="bold")
         self.add("Download")
         self.add("Playlist")
+        self.add("History")
 
         # Download Tab
         self.frame = ctk.CTkFrame(master=self.tab("Download"))
@@ -55,8 +63,33 @@ class MyTabView(ctk.CTkTabview):
         self.label = ctk.CTkLabel(master=self.frame2, text="Playlist")
         self.label.pack(pady=12, padx=10)
 
-class App(ctk.CTk):
+        # History Tab
+        cursor.execute("SELECT * FROM videos")
+        data = cursor.fetchall()
+        url = data[0][0]
+        title = data[0][1]
+        thumbnail = data[0][2]
 
+        # raw_data = urllib.request.urlopen(thumbnail).read()
+        # im = Image.open(io.BytesIO(raw_data))
+        # image = ImageTk.PhotoImage(im)
+
+        self.historyframe = ctk.CTkFrame(master=self.tab("History"))
+        self.historyframe.pack(pady=30, padx=60, fill="both", expand=True)
+        self.label = ctk.CTkLabel(master=self.historyframe, text="History")
+        self.label.pack(pady=12, padx=10)
+
+        self.label2 = ctk.CTkLabel(master=self.historyframe, text=title)
+        self.label2.pack(pady=12, padx=20, side="left")
+
+        self.label3 = ctk.CTkLabel(master=self.historyframe, text=url)
+        self.label3.pack(pady=12, padx=10, side="left")
+        
+        # Testing Images
+        # self.label3 = ctk.CTkLabel(master=self.historyframe, image=image, text="")
+        # self.label3.pack(pady=12, padx=10, side="right")
+
+class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Pyload")
